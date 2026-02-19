@@ -56,7 +56,7 @@ class LeadController extends Controller
         $leads = $query->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_dir', 'desc'))
                        ->paginate($request->integer('per_page', 20));
 
-        return response()->json($leads);
+        return response()->json(['data' => $leads]);
     }
 
     public function store(Request $request): JsonResponse
