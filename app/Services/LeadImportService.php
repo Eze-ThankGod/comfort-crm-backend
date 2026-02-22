@@ -71,9 +71,14 @@ class LeadImportService
             'source'        => strtolower(trim($record['source'] ?? 'csv_import')),
             'status'        => strtolower(trim($record['status'] ?? 'new')),
             'location'      => trim($record['location'] ?? $record['area'] ?? ''),
+            'preferred_location' => trim($record['preferred_location'] ?? $record['preferred_area'] ?? ''),
             'property_type' => trim($record['property_type'] ?? ''),
+            'finishing_type'=> trim($record['finishing_type'] ?? $record['finishing'] ?? ''),
             'budget_min'    => $this->parseDecimal($record['budget_min'] ?? $record['budget'] ?? null),
             'budget_max'    => $this->parseDecimal($record['budget_max'] ?? null),
+            'budget'        => $this->parseDecimal($record['budget'] ?? null),
+            'intent'        => strtolower(trim($record['intent'] ?? $record['purpose'] ?? '')),
+            'inspection_at' => trim($record['inspection_at'] ?? $record['inspection_date'] ?? ''),
             'notes'         => trim($record['notes'] ?? ''),
         ];
 
@@ -83,6 +88,8 @@ class LeadImportService
             'email'  => 'nullable|email',
             'source' => 'in:website,csv_import,portal,referral,whatsapp,social_media,cold_call,other',
             'status' => 'in:new,contacted,interested,viewing,won,lost',
+            'intent' => 'nullable|in:invest,move_in',
+            'inspection_at' => 'nullable|date',
         ]);
 
         if ($validator->fails()) {

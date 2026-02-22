@@ -12,14 +12,18 @@ class Lead extends Model
     protected $fillable = [
         'name', 'phone', 'email', 'source', 'status',
         'assigned_to', 'created_by', 'property_type',
-        'budget_min', 'budget_max', 'location', 'notes',
-        'tags', 'portal_id', 'last_contacted_at',
+        'budget_min', 'budget_max', 'budget', 'location',
+        'preferred_location', 'intent', 'finishing_type',
+        'inspection_at', 'notes', 'tags', 'portal_id',
+        'last_contacted_at',
     ];
 
     protected $casts = [
         'tags'               => 'array',
         'budget_min'         => 'decimal:2',
         'budget_max'         => 'decimal:2',
+        'budget'             => 'decimal:2',
+        'inspection_at'      => 'datetime',
         'last_contacted_at'  => 'datetime',
     ];
 
@@ -71,7 +75,8 @@ class Lead extends Model
             $q->where('name', 'like', "%{$term}%")
               ->orWhere('phone', 'like', "%{$term}%")
               ->orWhere('email', 'like', "%{$term}%")
-              ->orWhere('location', 'like', "%{$term}%");
+              ->orWhere('location', 'like', "%{$term}%")
+              ->orWhere('preferred_location', 'like', "%{$term}%");
         });
     }
 }
