@@ -56,7 +56,7 @@ class LeadController extends Controller
         $leads = $query->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_dir', 'desc'))
                        ->paginate($request->integer('per_page', 20));
 
-        return response()->json(['data' => $leads]);
+        return $this->success($leads);
     }
 
     public function store(Request $request): JsonResponse
@@ -90,7 +90,7 @@ class LeadController extends Controller
             $this->automationService->run('lead_assigned', ['lead' => $lead]);
         }
 
-        return response()->json($lead->load(['assignedAgent:id,name', 'creator:id,name']), 201);
+        return $this->success($lead->load(['assignedAgent:id,name', 'creator:id,name']), 201);
     }
 
     public function show(Lead $lead): JsonResponse
@@ -105,7 +105,7 @@ class LeadController extends Controller
             'activities' => fn($q) => $q->orderByDesc('created_at')->with('user:id,name'),
         ]);
 
-        return response()->json($lead);
+        return $this->success($lead);
     }
 
     public function update(Request $request, Lead $lead): JsonResponse
@@ -152,7 +152,7 @@ class LeadController extends Controller
             $this->activityService->leadUpdated($lead, $data);
         }
 
-        return response()->json($lead->load(['assignedAgent:id,name', 'creator:id,name']));
+        return $this->success($lead->load(['assignedAgent:id,name', 'creator:id,name']));
     }
 
     public function destroy(Lead $lead): JsonResponse
@@ -161,7 +161,7 @@ class LeadController extends Controller
 
         $lead->delete();
 
-        return response()->json(['message' => 'Lead deleted successfully']);
+        return response()->json(['status' => 'success', 'message' => 'Lead deleted successfully']);
     }
 
     public function assign(Request $request, Lead $lead): JsonResponse
@@ -178,7 +178,7 @@ class LeadController extends Controller
         $this->activityService->leadAssigned($lead, $oldAgent, $data['assigned_to']);
         $this->automationService->run('lead_assigned', ['lead' => $lead]);
 
-        return response()->json([
+        return $this->success([
             'message' => 'Lead assigned successfully',
             'lead'    => $lead->load('assignedAgent:id,name'),
         ]);
@@ -199,7 +199,7 @@ class LeadController extends Controller
             $this->automationService->run('lead_imported', ['count' => $result['imported']]);
         }
 
-        return response()->json($result, $result['imported'] > 0 ? 200 : 422);
+        return $this->success($result, $result['imported'] > 0 ? 200 : 422);
     }
 
     public function bulkAssign(Request $request): JsonResponse
@@ -215,7 +215,7 @@ class LeadController extends Controller
         Lead::whereIn('id', $data['lead_ids'])
             ->update(['assigned_to' => $data['assigned_to']]);
 
-        return response()->json([
+        return $this->success([
             'message' => count($data['lead_ids']) . ' leads assigned successfully',
         ]);
     }

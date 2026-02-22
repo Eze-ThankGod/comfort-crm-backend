@@ -19,10 +19,10 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         if ($user->isAgent()) {
-            return response()->json($this->agentDashboard($user));
+            return $this->success($this->agentDashboard($user));
         }
 
-        return response()->json(['data' => $this->adminDashboard()]);
+        return $this->success($this->adminDashboard());
     }
 
     private function agentDashboard($user): array

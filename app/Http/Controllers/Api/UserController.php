@@ -37,7 +37,7 @@ class UserController extends Controller
                        ->orderBy('name')
                        ->paginate($request->integer('per_page', 20));
 
-        return response()->json($users);
+        return $this->success($users);
     }
 
     public function store(Request $request): JsonResponse
@@ -58,7 +58,7 @@ class UserController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
-        return response()->json($user, 201);
+        return $this->success($user, 201);
     }
 
     public function show(User $user): JsonResponse
@@ -67,7 +67,7 @@ class UserController extends Controller
 
         $user->loadCount(['assignedLeads', 'tasks', 'callLogs']);
 
-        return response()->json($user);
+        return $this->success($user);
     }
 
     public function update(Request $request, User $user): JsonResponse
@@ -89,7 +89,7 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return response()->json($user);
+        return $this->success($user);
     }
 
     public function destroy(User $user): JsonResponse
@@ -98,7 +98,7 @@ class UserController extends Controller
 
         $user->delete();
 
-        return response()->json(['message' => 'User deleted successfully']);
+        return response()->json(['status' => 'success', 'message' => 'User deleted successfully']);
     }
 
     public function toggleActive(User $user): JsonResponse
@@ -107,7 +107,7 @@ class UserController extends Controller
 
         $user->update(['is_active' => ! $user->is_active]);
 
-        return response()->json([
+        return $this->success([
             'message'   => 'User status updated',
             'is_active' => $user->is_active,
         ]);
@@ -121,6 +121,6 @@ class UserController extends Controller
                       ->orderBy('name')
                       ->get();
 
-        return response()->json($agents);
+        return $this->success($agents);
     }
 }

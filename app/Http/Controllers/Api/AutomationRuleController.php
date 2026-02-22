@@ -15,7 +15,7 @@ class AutomationRuleController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return response()->json($rules);
+        return $this->success($rules);
     }
 
     public function store(Request $request): JsonResponse
@@ -38,12 +38,12 @@ class AutomationRuleController extends Controller
             'created_by' => auth()->id(),
         ]);
 
-        return response()->json($rule, 201);
+        return $this->success($rule, 201);
     }
 
     public function show(AutomationRule $automationRule): JsonResponse
     {
-        return response()->json($automationRule->load('creator:id,name'));
+        return $this->success($automationRule->load('creator:id,name'));
     }
 
     public function update(Request $request, AutomationRule $automationRule): JsonResponse
@@ -59,21 +59,21 @@ class AutomationRuleController extends Controller
 
         $automationRule->update($data);
 
-        return response()->json($automationRule);
+        return $this->success($automationRule);
     }
 
     public function destroy(AutomationRule $automationRule): JsonResponse
     {
         $automationRule->delete();
 
-        return response()->json(['message' => 'Automation rule deleted']);
+        return response()->json(['status' => 'success', 'message' => 'Automation rule deleted']);
     }
 
     public function toggle(AutomationRule $automationRule): JsonResponse
     {
         $automationRule->update(['is_active' => ! $automationRule->is_active]);
 
-        return response()->json([
+        return $this->success([
             'message'   => 'Rule ' . ($automationRule->is_active ? 'activated' : 'deactivated'),
             'is_active' => $automationRule->is_active,
         ]);

@@ -55,7 +55,7 @@ class TaskController extends Controller
         $tasks = $query->orderBy('due_date')
                        ->paginate($request->integer('per_page', 20));
 
-        return response()->json($tasks);
+        return $this->success($tasks);
     }
 
     public function store(Request $request): JsonResponse
@@ -75,7 +75,7 @@ class TaskController extends Controller
         if (auth()->user()->isAgent()) {
             $lead = Lead::find($data['lead_id']);
             if ($lead && $lead->assigned_to !== auth()->id()) {
-                return response()->json(['message' => 'Forbidden'], 403);
+                return $this->error('Forbidden', 403);
             }
             $data['assigned_to'] = auth()->id();
         }
@@ -86,7 +86,7 @@ class TaskController extends Controller
 
         $this->activityService->taskCreated($task);
 
-        return response()->json($task->load(['lead:id,name', 'assignedAgent:id,name']), 201);
+        return $this->success($task->load(['lead:id,name', 'assignedAgent:id,name']), 201);
     }
 
     public function show(Task $task): JsonResponse
@@ -95,7 +95,7 @@ class TaskController extends Controller
 
         $task->load(['lead:id,name,phone', 'assignedAgent:id,name', 'creator:id,name']);
 
-        return response()->json($task);
+        return $this->success($task);
     }
 
     public function update(Request $request, Task $task): JsonResponse
@@ -123,7 +123,7 @@ class TaskController extends Controller
             $this->activityService->taskCompleted($task);
         }
 
-        return response()->json($task->load(['lead:id,name', 'assignedAgent:id,name']));
+        return $this->success($task->load(['lead:id,name', 'assignedAgent:id,name']));
     }
 
     public function destroy(Task $task): JsonResponse
@@ -132,7 +132,7 @@ class TaskController extends Controller
 
         $task->delete();
 
-        return response()->json(['message' => 'Task deleted successfully']);
+        return response()->json(['status' => 'success', 'message' => 'Task deleted successfully']);
     }
 
     public function complete(Task $task): JsonResponse
@@ -140,7 +140,7 @@ class TaskController extends Controller
         $this->authorize('update', $task);
 
         if ($task->status === 'completed') {
-            return response()->json(['message' => 'Task already completed'], 422);
+            return $this->error('Task already completed', 422);
         }
 
         $task->update([
@@ -150,6 +150,6 @@ class TaskController extends Controller
 
         $this->activityService->taskCompleted($task);
 
-        return response()->json(['message' => 'Task marked as completed', 'task' => $task]);
+        return $this->success(['message' => 'Task marked as completed', 'task' => $task]);
     }
 }

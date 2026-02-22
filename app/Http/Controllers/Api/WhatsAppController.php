@@ -27,24 +27,24 @@ class WhatsAppController extends Controller
         $lead = Lead::findOrFail($data['lead_id']);
 
         if (auth()->user()->isAgent() && $lead->assigned_to !== auth()->id()) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return $this->error('Forbidden', 403);
         }
 
         if (! $lead->phone) {
-            return response()->json(['message' => 'Lead has no phone number'], 422);
+            return $this->error('Lead has no phone number', 422);
         }
 
         $message = $this->whatsAppService->send($lead, $data['message']);
 
         $this->activityService->whatsappSent($lead, $data['message']);
 
-        return response()->json($message, 201);
+        return $this->success($message, 201);
     }
 
     public function history(Request $request, Lead $lead): JsonResponse
     {
         if (auth()->user()->isAgent() && $lead->assigned_to !== auth()->id()) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return $this->error('Forbidden', 403);
         }
 
         $messages = $lead->whatsappMessages()
@@ -52,7 +52,7 @@ class WhatsAppController extends Controller
             ->orderBy('created_at')
             ->paginate($request->integer('per_page', 50));
 
-        return response()->json($messages);
+        return $this->success($messages);
     }
 
     public function webhook(Request $request): JsonResponse
@@ -67,7 +67,7 @@ class WhatsAppController extends Controller
                 return response()->json((int)$challenge);
             }
 
-            return response()->json(['message' => 'Forbidden'], 403);
+            return $this->error('Forbidden', 403);
         }
 
         // Handle incoming messages (POST)

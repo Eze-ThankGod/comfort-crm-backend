@@ -37,7 +37,7 @@ class ReportController extends Controller
             'assignedLeads as leads_won' => fn($q) => $q->where('status', 'won'),
         ])->get(['id', 'name', 'email']);
 
-        return response()->json([
+        return $this->success([
             'date_from' => $dateFrom,
             'date_to'   => $dateTo,
             'agents'    => $agents,
@@ -59,7 +59,7 @@ class ReportController extends Controller
             ];
         })->values();
 
-        return response()->json($grouped);
+        return $this->success($grouped);
     }
 
     public function callOutcomes(Request $request): JsonResponse
@@ -86,7 +86,7 @@ class ReportController extends Controller
 
         $outcomes = $query->groupBy('outcome')->pluck('count', 'outcome');
 
-        return response()->json($outcomes);
+        return $this->success($outcomes);
     }
 
     public function taskCompletion(Request $request): JsonResponse
@@ -109,7 +109,7 @@ class ReportController extends Controller
             return $items->pluck('count', 'status');
         });
 
-        return response()->json($grouped);
+        return $this->success($grouped);
     }
 
     public function leadFunnel(): JsonResponse
@@ -125,7 +125,7 @@ class ReportController extends Controller
             'count'  => $data->get($s, 0),
         ]);
 
-        return response()->json($funnel);
+        return $this->success($funnel);
     }
 
     public function callsOverTime(Request $request): JsonResponse
@@ -147,6 +147,6 @@ class ReportController extends Controller
                         ->orderBy('date')
                         ->pluck('count', 'date');
 
-        return response()->json($series);
+        return $this->success($series);
     }
 }

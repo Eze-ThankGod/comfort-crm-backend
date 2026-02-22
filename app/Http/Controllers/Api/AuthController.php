@@ -21,14 +21,14 @@ class AuthController extends Controller
         ]);
 
         if (! $token = Auth::guard('api')->attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return $this->error('Invalid credentials', 401);
         }
 
         $user = Auth::guard('api')->user();
 
         if (! $user->is_active) {
             Auth::guard('api')->logout();
-            return response()->json(['message' => 'Your account has been deactivated.'], 403);
+            return $this->error('Your account has been deactivated.', 403);
         }
 
         return $this->respondWithToken($token);
@@ -36,7 +36,7 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        return $this->success($request->user());
     }
 
     public function refresh(Request $request): JsonResponse
@@ -50,20 +50,20 @@ class AuthController extends Controller
 
             return $this->respondWithToken($newToken);
         } catch (TokenBlacklistedException $e) {
-            return response()->json(['message' => 'Token has already been used. Please login again.'], 401);
+            return $this->error('Token has already been used. Please login again.', 401);
         } catch (TokenExpiredException $e) {
-            return response()->json(['message' => 'Refresh window expired. Please login again.'], 401);
+            return $this->error('Refresh window expired. Please login again.', 401);
         } catch (JWTException $e) {
-            return response()->json(['message' => 'Invalid token: ' . $e->getMessage()], 401);
+            return $this->error('Invalid token: ' . $e->getMessage(), 401);
         } catch (\Throwable $e) {
-            return response()->json(['message' => 'Token refresh failed: ' . $e->getMessage()], 401);
+            return $this->error('Token refresh failed: ' . $e->getMessage(), 401);
         }
     }
 
     public function logout(Request $request): JsonResponse
     {
         Auth::guard('api')->logout();
-        return response()->json(['message' => 'Successfully logged out']);
+        return response()->json(['status' => 'success', 'message' => 'Successfully logged out']);
     }
 
     private function respondWithToken(string $token): JsonResponse
@@ -72,6 +72,7 @@ class AuthController extends Controller
         $user = Auth::guard('api')->setToken($token)->user();
 
         return response()->json([
+            'status'       => 'success',
             'access_token' => $token,
             'token_type'   => 'bearer',
             'expires_in'   => config('jwt.ttl') * 60,

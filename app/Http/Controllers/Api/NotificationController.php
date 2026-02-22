@@ -15,7 +15,7 @@ class NotificationController extends Controller
             ->orderByDesc('created_at')
             ->paginate($request->integer('per_page', 20));
 
-        return response()->json($notifications);
+        return $this->success($notifications);
     }
 
     public function unread(): JsonResponse
@@ -25,7 +25,7 @@ class NotificationController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return response()->json([
+        return $this->success([
             'count'         => $notifications->count(),
             'notifications' => $notifications,
         ]);
@@ -39,14 +39,14 @@ class NotificationController extends Controller
 
         $notification->markAsRead();
 
-        return response()->json(['message' => 'Marked as read']);
+        return response()->json(['status' => 'success', 'message' => 'Marked as read']);
     }
 
     public function markAllAsRead(): JsonResponse
     {
         auth()->user()->unreadNotifications->markAsRead();
 
-        return response()->json(['message' => 'All notifications marked as read']);
+        return response()->json(['status' => 'success', 'message' => 'All notifications marked as read']);
     }
 
     public function destroy(string $id): JsonResponse
@@ -56,6 +56,6 @@ class NotificationController extends Controller
             ->findOrFail($id)
             ->delete();
 
-        return response()->json(['message' => 'Notification deleted']);
+        return response()->json(['status' => 'success', 'message' => 'Notification deleted']);
     }
 }

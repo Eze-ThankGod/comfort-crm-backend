@@ -52,7 +52,7 @@ class CallLogController extends Controller
         $logs = $query->orderByDesc('called_at')
                       ->paginate($request->integer('per_page', 20));
 
-        return response()->json($logs);
+        return $this->success($logs);
     }
 
     public function store(Request $request): JsonResponse
@@ -69,7 +69,7 @@ class CallLogController extends Controller
 
         // Agents can only log calls for their assigned leads
         if (auth()->user()->isAgent() && $lead->assigned_to !== auth()->id()) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return $this->error('Forbidden', 403);
         }
 
         $log = CallLog::create([
@@ -90,23 +90,23 @@ class CallLogController extends Controller
             'outcome' => $data['outcome'],
         ]);
 
-        return response()->json($log->load(['lead:id,name', 'agent:id,name']), 201);
+        return $this->success($log->load(['lead:id,name', 'agent:id,name']), 201);
     }
 
     public function show(CallLog $callLog): JsonResponse
     {
         // Agents can only view their own call logs
         if (auth()->user()->isAgent() && $callLog->agent_id !== auth()->id()) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return $this->error('Forbidden', 403);
         }
 
-        return response()->json($callLog->load(['lead:id,name,phone', 'agent:id,name']));
+        return $this->success($callLog->load(['lead:id,name,phone', 'agent:id,name']));
     }
 
     public function update(Request $request, CallLog $callLog): JsonResponse
     {
         if (auth()->user()->isAgent() && $callLog->agent_id !== auth()->id()) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return $this->error('Forbidden', 403);
         }
 
         $data = $request->validate([
@@ -117,17 +117,17 @@ class CallLogController extends Controller
 
         $callLog->update($data);
 
-        return response()->json($callLog->load(['lead:id,name', 'agent:id,name']));
+        return $this->success($callLog->load(['lead:id,name', 'agent:id,name']));
     }
 
     public function destroy(CallLog $callLog): JsonResponse
     {
         if (! auth()->user()->isAdminOrManager()) {
-            return response()->json(['message' => 'Forbidden'], 403);
+            return $this->error('Forbidden', 403);
         }
 
         $callLog->delete();
 
-        return response()->json(['message' => 'Call log deleted']);
+        return response()->json(['status' => 'success', 'message' => 'Call log deleted']);
     }
 }

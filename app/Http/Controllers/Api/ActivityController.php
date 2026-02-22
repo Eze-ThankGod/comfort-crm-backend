@@ -44,6 +44,6 @@ class ActivityController extends Controller
         $activities = $query->orderByDesc('created_at')
                             ->paginate($request->integer('per_page', 30));
 
-        return response()->json($activities);
+        return $this->success($activities);
     }
 }
