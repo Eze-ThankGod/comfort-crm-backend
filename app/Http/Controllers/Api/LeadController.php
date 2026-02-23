@@ -188,9 +188,10 @@ class LeadController extends Controller
         $this->activityService->leadAssigned($lead, $oldAgent, $data['assigned_to']);
         $this->automationService->run('lead_assigned', ['lead' => $lead]);
 
-        return $this->success([
+        return response()->json([
+            'status'  => 'success',
             'message' => 'Lead assigned successfully',
-            'lead'    => $lead->load('assignedAgent:id,name'),
+            'data'    => $lead->load('assignedAgent:id,name'),
         ]);
     }
 
@@ -225,7 +226,8 @@ class LeadController extends Controller
         Lead::whereIn('id', $data['lead_ids'])
             ->update(['assigned_to' => $data['assigned_to']]);
 
-        return $this->success([
+        return response()->json([
+            'status'  => 'success',
             'message' => count($data['lead_ids']) . ' leads assigned successfully',
         ]);
     }
