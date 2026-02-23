@@ -3,14 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\Task;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TaskReminderNotification extends Notification implements ShouldQueue
+class TaskReminderNotification extends Notification
 {
-    use Queueable;
 
     public function __construct(protected Task $task) {}
 

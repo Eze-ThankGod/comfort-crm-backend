@@ -14,8 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'auth' => \App\Http\Middleware\Authenticate::class,
-            'role' => \App\Http\Middleware\CheckRole::class,
+            'auth'   => App\Http\Middleware\Authenticate::class,
+            'role'   => App\Http\Middleware\CheckRole::class,
+            'active' => App\Http\Middleware\EnsureAccountIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -36,7 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'message' => 'Validation failed.',
                     'errors'  => $e->errors(),
-                ], 422);
+                ], 400);
             }
         });
 

@@ -31,7 +31,7 @@ class WhatsAppController extends Controller
         }
 
         if (! $lead->phone) {
-            return $this->error('Lead has no phone number', 422);
+            return $this->error('Lead has no phone number', 400);
         }
 
         $message = $this->whatsAppService->send($lead, $data['message']);

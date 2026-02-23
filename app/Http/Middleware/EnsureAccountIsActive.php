@@ -6,16 +6,14 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckRole
+class EnsureAccountIsActive
 {
-    public function handle(Request $request, Closure $next, string ...$roles): Response
+    public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
-
-        if (! $user || ! in_array($user->role, $roles)) {
+        if ($request->user() && ! $request->user()->is_active) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Forbidden. Insufficient permissions.',
+                'message' => 'Your account has been deactivated.',
             ], 403);
         }
 

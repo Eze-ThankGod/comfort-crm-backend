@@ -4,14 +4,11 @@ namespace App\Notifications;
 
 use App\Models\Lead;
 use App\Models\User;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class LeadAssignedNotification extends Notification implements ShouldQueue
+class LeadAssignedNotification extends Notification
 {
-    use Queueable;
 
     public function __construct(protected Lead $lead) {}
 

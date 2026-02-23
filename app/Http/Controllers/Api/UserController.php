@@ -106,10 +106,18 @@ class UserController extends Controller
         $this->authorize('toggleActive', $user);
 
         $user->update(['is_active' => ! $user->is_active]);
+        $user->refresh();
 
-        return $this->success([
+        return response()->json([
+            'status'    => 'success',
             'message'   => 'User status updated',
-            'is_active' => $user->is_active,
+            'data'      => [
+                'id'        => $user->id,
+                'name'      => $user->name,
+                'email'     => $user->email,
+                'role'      => $user->role,
+                'is_active' => $user->is_active,
+            ],
         ]);
     }
 

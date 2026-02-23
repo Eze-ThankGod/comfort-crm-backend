@@ -30,7 +30,7 @@ Route::prefix('v1')->group(function () {
     Route::match(['get', 'post'], '/webhooks/whatsapp', [WhatsAppController::class, 'webhook']);
 
     // ─── Protected Routes ────────────────────────────────────────────────────
-    Route::middleware(['auth:api'])->group(function () {
+    Route::middleware(['auth:api', 'active'])->group(function () {
 
         // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);

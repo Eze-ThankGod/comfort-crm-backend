@@ -210,7 +210,7 @@ class LeadController extends Controller
             $this->automationService->run('lead_imported', ['count' => $result['imported']]);
         }
 
-        return $this->success($result, $result['imported'] > 0 ? 200 : 422);
+        return $this->success($result, $result['imported'] > 0 ? 200 : 400);
     }
 
     public function bulkAssign(Request $request): JsonResponse

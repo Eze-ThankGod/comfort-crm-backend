@@ -140,7 +140,7 @@ class TaskController extends Controller
         $this->authorize('update', $task);
 
         if ($task->status === 'completed') {
-            return $this->error('Task already completed', 422);
+            return $this->error('Task already completed', 400);
         }
 
         $task->update([
@@ -150,6 +150,10 @@ class TaskController extends Controller
 
         $this->activityService->taskCompleted($task);
 
-        return $this->success(['message' => 'Task marked as completed', 'task' => $task]);
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Task marked as completed',
+            'data'    => $task,
+        ]);
     }
 }

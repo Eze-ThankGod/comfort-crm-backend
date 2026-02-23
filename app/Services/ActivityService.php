@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\Lead;
 use App\Models\Task;
 use App\Models\User;
+use App\Notifications\LeadAssignedNotification;
 
 class ActivityService
 {
@@ -55,6 +56,11 @@ class ActivityService
             'old_agent_id' => $oldAgentId,
             'new_agent_id' => $newAgentId,
         ]);
+
+        // Notify the newly assigned agent
+        if ($newAgent) {
+            $newAgent->notify(new LeadAssignedNotification($lead));
+        }
     }
 
     public function callLogged(Lead $lead, string $outcome): void
