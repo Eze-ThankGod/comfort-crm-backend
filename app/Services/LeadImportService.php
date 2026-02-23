@@ -8,6 +8,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use League\Csv\Reader;
+use OpenSpout\Reader\XLSX\Reader as XlsxReader;
+use OpenSpout\Reader\XLS\Reader as XlsReader;
 
 class LeadImportService
 {
@@ -21,23 +23,68 @@ class LeadImportService
         $this->imported = 0;
         $this->skipped  = 0;
 
-        $csv = Reader::createFromPath($file->getRealPath(), 'r');
-        $csv->setHeaderOffset(0);
+        $extension = strtolower($file->getClientOriginalExtension());
 
-        $records = $csv->getRecords();
+        if (in_array($extension, ['xlsx', 'xls'])) {
+            $this->importSpreadsheet($file->getRealPath(), $extension, $user);
+        } else {
+            $csv = Reader::createFromPath($file->getRealPath(), 'r');
+            $csv->setHeaderOffset(0);
+            $records = $csv->getRecords();
 
-        DB::transaction(function () use ($records, $user) {
-            foreach ($records as $index => $record) {
-                $row = $index + 2; // account for header
-                $this->processRow($record, $row, $user);
-            }
-        });
+            DB::transaction(function () use ($records, $user) {
+                foreach ($records as $index => $record) {
+                    $row = $index + 2; // account for header
+                    $this->processRow($record, $row, $user);
+                }
+            });
+        }
 
         return [
             'imported' => $this->imported,
             'skipped'  => $this->skipped,
             'errors'   => $this->errors,
         ];
+    }
+
+    private function importSpreadsheet(string $path, string $extension, User $user): void
+    {
+        $reader = $extension === 'xlsx' ? new XlsxReader() : new XlsReader();
+        $reader->open($path);
+
+        DB::transaction(function () use ($reader, $user) {
+            foreach ($reader->getSheetIterator() as $sheet) {
+                $headers = [];
+                $rowIndex = 0;
+
+                foreach ($sheet->getRowIterator() as $row) {
+                    $cells = $row->toArray();
+
+                    if ($rowIndex === 0) {
+                        // First row is the header
+                        $headers = array_map('strtolower', array_map('trim', $cells));
+                        $rowIndex++;
+                        continue;
+                    }
+
+                    $rowIndex++;
+                    // Pad cells to match header count
+                    $cells  = array_pad($cells, count($headers), null);
+                    $record = array_combine($headers, $cells);
+
+                    $this->processRow(
+                        array_map(fn($v) => $v !== null ? (string) $v : '', $record),
+                        $rowIndex,
+                        $user
+                    );
+                }
+
+                // Only process the first sheet
+                break;
+            }
+        });
+
+        $reader->close();
     }
 
     public function importArray(array $rows, User $user): array
@@ -64,22 +111,24 @@ class LeadImportService
         // Normalize keys to lowercase
         $record = array_change_key_case($record, CASE_LOWER);
 
+        $nullIfEmpty = fn(?string $v): ?string => ($v !== null && trim($v) !== '') ? trim($v) : null;
+
         $data = [
-            'name'          => trim($record['name'] ?? $record['full_name'] ?? ''),
-            'phone'         => trim($record['phone'] ?? $record['mobile'] ?? ''),
-            'email'         => trim($record['email'] ?? ''),
-            'source'        => strtolower(trim($record['source'] ?? 'csv_import')),
-            'status'        => strtolower(trim($record['status'] ?? 'new')),
-            'location'      => trim($record['location'] ?? $record['area'] ?? ''),
-            'preferred_location' => trim($record['preferred_location'] ?? $record['preferred_area'] ?? ''),
-            'property_type' => trim($record['property_type'] ?? ''),
-            'finishing_type'=> trim($record['finishing_type'] ?? $record['finishing'] ?? ''),
-            'budget_min'    => $this->parseDecimal($record['budget_min'] ?? $record['budget'] ?? null),
-            'budget_max'    => $this->parseDecimal($record['budget_max'] ?? null),
-            'budget'        => $this->parseDecimal($record['budget'] ?? null),
-            'intent'        => strtolower(trim($record['intent'] ?? $record['purpose'] ?? '')),
-            'inspection_at' => trim($record['inspection_at'] ?? $record['inspection_date'] ?? ''),
-            'notes'         => trim($record['notes'] ?? ''),
+            'name'               => trim($record['name'] ?? $record['full_name'] ?? ''),
+            'phone'              => $nullIfEmpty($record['phone'] ?? $record['mobile'] ?? null),
+            'email'              => $nullIfEmpty($record['email'] ?? null),
+            'source'             => strtolower(trim($record['source'] ?? 'csv_import')),
+            'status'             => strtolower(trim($record['status'] ?? 'new')),
+            'location'           => $nullIfEmpty($record['location'] ?? $record['area'] ?? null),
+            'preferred_location' => $nullIfEmpty($record['preferred_location'] ?? $record['preferred_area'] ?? null),
+            'property_type'      => $nullIfEmpty($record['property_type'] ?? null),
+            'finishing_type'     => $nullIfEmpty($record['finishing_type'] ?? $record['finishing'] ?? null),
+            'budget_min'         => $this->parseDecimal($record['budget_min'] ?? null),
+            'budget_max'         => $this->parseDecimal($record['budget_max'] ?? null),
+            'budget'             => $this->parseDecimal($record['budget'] ?? null),
+            'intent'             => $nullIfEmpty(strtolower(trim($record['intent'] ?? $record['purpose'] ?? ''))),
+            'inspection_at'      => $nullIfEmpty($record['inspection_at'] ?? $record['inspection_date'] ?? null),
+            'notes'              => $nullIfEmpty($record['notes'] ?? null),
         ];
 
         $validator = Validator::make($data, [

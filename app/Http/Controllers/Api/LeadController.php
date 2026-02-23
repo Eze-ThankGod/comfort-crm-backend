@@ -199,7 +199,7 @@ class LeadController extends Controller
         $this->authorize('import', Lead::class);
 
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt|max:5120',
+            'file' => 'required|file|mimes:csv,txt,xlsx,xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel|max:10240',
         ]);
 
         $result = $importService->importCsv($request->file('file'), auth()->user());
