@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "09f629b783f5deddb0c55fef64b1c215",
+    "content-hash": "a7dbe0110a751282da37a7af6237f380",
     "packages": [
         {
             "name": "brick/math",
@@ -6105,6 +6105,48 @@
                 }
             ],
             "time": "2026-01-01T22:13:48+00:00"
+        },
+        {
+            "name": "syntech/syntechfcm",
+            "version": "1.3.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mokhdesigns/syntechfcm.git",
+                "reference": "7f46639f5a03adf7f62c5f6c1d22044879ecd9ee"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mokhdesigns/syntechfcm/zipball/7f46639f5a03adf7f62c5f6c1d22044879ecd9ee",
+                "reference": "7f46639f5a03adf7f62c5f6c1d22044879ecd9ee",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/notifications": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/support": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Syntech\\Syntechfcm\\SyntechFcmServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Syntech\\Syntechfcm\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A Laravel package for FCM",
+            "support": {
+                "issues": "https://github.com/mokhdesigns/syntechfcm/issues",
+                "source": "https://github.com/mokhdesigns/syntechfcm/tree/v1.3.1"
+            },
+            "time": "2025-05-25T08:47:58+00:00"
         },
         {
             "name": "tijsverkoyen/css-to-inline-styles",

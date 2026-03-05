@@ -19,6 +19,7 @@ class User extends Authenticatable implements JWTSubject
         'phone',
         'is_active',
         'avatar',
+        'device_token',
     ];
 
     protected $hidden = [
@@ -68,6 +69,12 @@ class User extends Authenticatable implements JWTSubject
     public function isAdminOrManager(): bool
     {
         return in_array($this->role, ['admin', 'manager']);
+    }
+
+    // FCM push notification routing
+    public function routeNotificationForFcm(): ?string
+    {
+        return $this->device_token;
     }
 
     // Relationships

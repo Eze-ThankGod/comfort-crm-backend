@@ -7,6 +7,7 @@ use App\Models\Lead;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\LeadAssignedNotification;
+use App\Notifications\TaskAssignedNotification;
 
 class ActivityService
 {
@@ -77,6 +78,26 @@ class ActivityService
             'task_type' => $task->type,
             'due_date'  => $task->due_date?->toDateTimeString(),
         ]);
+
+        // Notify the assigned agent
+        if ($task->assignedAgent) {
+            $task->assignedAgent->notify(new TaskAssignedNotification($task));
+        }
+    }
+
+    public function taskReassigned(Task $task, int $oldAgentId, int $newAgentId): void
+    {
+        $newAgent = User::find($newAgentId);
+        $this->log('task_reassigned', "Task '{$task->title}' reassigned to '{$newAgent?->name}'", $task->lead, properties: [
+            'task_id'      => $task->id,
+            'old_agent_id' => $oldAgentId,
+            'new_agent_id' => $newAgentId,
+        ]);
+
+        if ($newAgent) {
+            $task->load('lead');
+            $newAgent->notify(new TaskAssignedNotification($task));
+        }
     }
 
     public function taskCompleted(Task $task): void

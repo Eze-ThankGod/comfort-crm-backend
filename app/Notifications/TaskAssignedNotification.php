@@ -6,9 +6,8 @@ use App\Models\Task;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class OverdueTaskNotification extends Notification
+class TaskAssignedNotification extends Notification
 {
-
     public function __construct(protected Task $task) {}
 
     public function via(object $notifiable): array
@@ -19,23 +18,23 @@ class OverdueTaskNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("⚠️ Overdue Task: {$this->task->title}")
+            ->subject("New Task Assigned: {$this->task->title}")
             ->greeting("Hello {$notifiable->name},")
-            ->error()
-            ->line("The following task is **overdue** and has not been completed:")
+            ->line("A new task has been assigned to you:")
             ->line("**{$this->task->title}**")
+            ->line("Type: " . ucfirst(str_replace('_', ' ', $this->task->type)))
             ->line("Lead: " . ($this->task->lead?->name ?? 'N/A'))
-            ->line("Was due: " . $this->task->due_date->format('d M Y H:i'))
+            ->line("Due: " . $this->task->due_date?->format('d M Y H:i'))
             ->action('View Task', url("/tasks/{$this->task->id}"))
-            ->line('Please update the task status as soon as possible.');
+            ->line('Please complete this task before the due date.');
     }
 
     public function toArray(object $notifiable): array
     {
         return [
-            'type'      => 'overdue_task',
-            'title'     => "Overdue Task: {$this->task->title}",
-            'message'   => "Your task '{$this->task->title}' is overdue (was due " . $this->task->due_date->format('d M Y H:i') . ')',
+            'type'      => 'task_assigned',
+            'title'     => "New Task: {$this->task->title}",
+            'message'   => "A task has been assigned to you: '{$this->task->title}' due " . $this->task->due_date?->format('d M Y H:i'),
             'task_id'   => $this->task->id,
             'lead_id'   => $this->task->lead_id,
             'lead_name' => $this->task->lead?->name,
@@ -48,11 +47,11 @@ class OverdueTaskNotification extends Notification
         return [
             'to' => $notifiable->device_token,
             'notification' => [
-                'title' => "⚠️ Overdue Task: {$this->task->title}",
-                'body'  => "Task '{$this->task->title}' was due " . $this->task->due_date->format('d M Y H:i') . ' and is still pending.',
+                'title' => "New Task: {$this->task->title}",
+                'body'  => "Due " . $this->task->due_date?->format('d M Y H:i') . " — " . ($this->task->lead?->name ?? 'No lead'),
             ],
             'data' => [
-                'type'    => 'overdue_task',
+                'type'    => 'task_assigned',
                 'task_id' => (string) $this->task->id,
                 'lead_id' => (string) $this->task->lead_id,
             ],

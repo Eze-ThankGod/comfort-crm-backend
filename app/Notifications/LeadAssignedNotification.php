@@ -14,7 +14,7 @@ class LeadAssignedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database', 'mail', 'fcm'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -38,6 +38,21 @@ class LeadAssignedNotification extends Notification
             'message'   => "Lead '{$this->lead->name}' has been assigned to you.",
             'lead_id'   => $this->lead->id,
             'lead_name' => $this->lead->name,
+        ];
+    }
+
+    public function toFcm(object $notifiable): array
+    {
+        return [
+            'to' => $notifiable->device_token,
+            'notification' => [
+                'title' => "New Lead: {$this->lead->name}",
+                'body'  => "A new lead has been assigned to you. Phone: " . ($this->lead->phone ?? 'N/A'),
+            ],
+            'data' => [
+                'type'    => 'lead_assigned',
+                'lead_id' => (string) $this->lead->id,
+            ],
         ];
     }
 }

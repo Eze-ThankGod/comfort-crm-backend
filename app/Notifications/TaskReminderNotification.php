@@ -13,7 +13,7 @@ class TaskReminderNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database', 'mail', 'fcm'];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -40,6 +40,22 @@ class TaskReminderNotification extends Notification
             'lead_id'   => $this->task->lead_id,
             'lead_name' => $this->task->lead?->name,
             'due_date'  => $this->task->due_date?->toDateTimeString(),
+        ];
+    }
+
+    public function toFcm(object $notifiable): array
+    {
+        return [
+            'to' => $notifiable->device_token,
+            'notification' => [
+                'title' => "Task Due: {$this->task->title}",
+                'body'  => "Your task '{$this->task->title}' is due at " . $this->task->due_date->format('H:i'),
+            ],
+            'data' => [
+                'type'    => 'task_reminder',
+                'task_id' => (string) $this->task->id,
+                'lead_id' => (string) $this->task->lead_id,
+            ],
         ];
     }
 }

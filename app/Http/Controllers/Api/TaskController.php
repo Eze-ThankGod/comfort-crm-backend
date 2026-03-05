@@ -111,7 +111,9 @@ class TaskController extends Controller
             'status'      => 'sometimes|in:pending,completed,missed',
         ]);
 
-        $wasCompleted = isset($data['status']) && $data['status'] === 'completed' && $task->status !== 'completed';
+        $wasCompleted  = isset($data['status']) && $data['status'] === 'completed' && $task->status !== 'completed';
+        $wasReassigned = isset($data['assigned_to']) && (int) $data['assigned_to'] !== (int) $task->assigned_to;
+        $oldAgentId    = $task->assigned_to;
 
         if ($wasCompleted) {
             $data['completed_at'] = now();
@@ -121,6 +123,10 @@ class TaskController extends Controller
 
         if ($wasCompleted) {
             $this->activityService->taskCompleted($task);
+        }
+
+        if ($wasReassigned) {
+            $this->activityService->taskReassigned($task, $oldAgentId, (int) $data['assigned_to']);
         }
 
         return $this->success($task->load(['lead:id,name', 'assignedAgent:id,name']));

@@ -16,11 +16,14 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required|string',
+            'email'        => 'required|email',
+            'password'     => 'required|string',
+            'device_token' => 'nullable|string',
         ]);
 
-        if (! $token = Auth::guard('api')->attempt($credentials)) {
+        $attempt = ['email' => $credentials['email'], 'password' => $credentials['password']];
+
+        if (! $token = Auth::guard('api')->attempt($attempt)) {
             return $this->error('Invalid credentials', 401);
         }
 
@@ -29,6 +32,11 @@ class AuthController extends Controller
         if (! $user->is_active) {
             Auth::guard('api')->logout();
             return $this->error('Your account has been deactivated.', 403);
+        }
+
+        // Store the device token if provided
+        if (! empty($credentials['device_token'])) {
+            $user->update(['device_token' => $credentials['device_token']]);
         }
 
         return $this->respondWithToken($token);
